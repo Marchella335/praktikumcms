@@ -64,4 +64,10 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
     ];
+
+    protected $routeMiddleware = [
+        //Middleware bawaan Laravel...
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'check.age' => \App\Http\Middleware\CheckAge::class,
+    ];
 }
