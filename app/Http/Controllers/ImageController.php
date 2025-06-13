@@ -28,4 +28,16 @@ class ImageController extends Controller
 
         return view('upload', ['image' => $image])->with('success', 'Gambar berhasil diupload!');
     }
+    public function destroy($id)
+{
+    $image = Image::findOrFail($id);
+
+    // Hapus file dari storage
+    Storage::disk('public')->delete($image->image_path);
+
+    // Hapus data dari database
+    $image->delete();
+
+    return redirect('/upload')->with('success', 'Gambar berhasil dihapus.');
+}
 }

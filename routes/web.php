@@ -105,3 +105,4 @@ Route::get('/pendaftaran-ktp', function() {
 
 Route::get('/upload', [ImageController::class, 'create']);
 Route::post('/upload', [ImageController::class, 'store'])->name('image.upload');
+Route::delete('/upload/{id}', [ImageController::class, 'destroy'])->name('image.destroy');
