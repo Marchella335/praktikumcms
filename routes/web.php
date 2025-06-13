@@ -8,6 +8,8 @@ use App\Http\Controllers\DOKTERController;
 use App\Http\Controllers\REKAM_MEDISController;
 use App\Http\Controllers\JANJI_TEMUController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ImageController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -58,7 +60,7 @@ Route::prefix('pasien')->name('pasien.')->group(function () {
 });
 
 // Rekam Medis Routes
-Route::prefix('rekam_medis')->name('rekam_medis.')->group(function () {
+    Route::prefix('rekam_medis')->name('rekam_medis.')->group(function () {
     Route::get('/', [REKAM_MEDISController::class, 'index'])->name('index');
     Route::get('/create', [REKAM_MEDISController::class, 'create'])->name('create');
     Route::post('/', [REKAM_MEDISController::class, 'store'])->name('store');
@@ -66,6 +68,11 @@ Route::prefix('rekam_medis')->name('rekam_medis.')->group(function () {
     Route::get('/{id}/edit', [REKAM_MEDISController::class, 'edit'])->name('edit');
     Route::put('/{id}', [REKAM_MEDISController::class, 'update'])->name('update');
     Route::delete('/{id}', [REKAM_MEDISController::class, 'destroy'])->name('destroy');
+    Route::get('/pasien/{id}', [REKAM_MEDISController::class, 'byPasien'])->name('by_pasien');
+    Route::get('/dokter/{id}', [REKAM_MEDISController::class, 'byDokter'])->name('by_dokter');
+    Route::get('/statistik', [REKAM_MEDISController::class, 'statistik'])->name('statistik');
+    Route::get('/search', [REKAM_MEDISController::class, 'search'])->name('search');
+    Route::get('/export', [REKAM_MEDISController::class, 'export'])->name('export');
 });
 
 // Janji Temu Routes
@@ -95,3 +102,6 @@ Route::prefix('staf')->name('staf.')->group(function () {
 Route::get('/pendaftaran-ktp', function() {
     return 'Selamat datang di halaman Pendaftaran KTP Online!';
 })->middleware ('check.age');
+
+Route::get('/upload', [ImageController::class, 'create']);
+Route::post('/upload', [ImageController::class, 'store'])->name('image.upload');
