@@ -164,14 +164,14 @@
                     
                     <div class="mb-3">
                         <label for="created_at" class="form-label">Tanggal Bergabung</label>
-                        <input type="datetime-local" class="form-control" name="created_at"
-                        value="{{ old('created_at', isset($staf->created_at) ? date('Y-m-d\TH:i', strtotime($staf->created_at)) : '') }}">
+                        <input type="datetime-local" class="form-control" name="created_at" readonly
+                        value="{{ old('created_at', isset($dokter->CREATED_AT) ? date('Y-m-d\TH:i', strtotime($dokter->CREATED_AT)) : '') }}">
                     </div>
 
                     <div class="mb-3">
                         <label for="updated_at" class="form-label">Terakhir Diupdate</label>
-                        <input type="datetime-local" class="form-control" name="updated_at"
-                        value="{{ old('updated_at', isset($staf->updated_at) ? date('Y-m-d\TH:i', strtotime($staf->updated_at)) : '') }}">
+                        <input type="datetime-local" class="form-control" name="updated_at" readonly
+                        value="{{ old('updated_at', isset($dokter->UPDATED_AT) ? date('Y-m-d\TH:i', strtotime($dokter->UPDATED_AT)) : '') }}">
                     </div>
                 </div>
             </div>

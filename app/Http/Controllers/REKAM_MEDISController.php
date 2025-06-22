@@ -181,18 +181,25 @@ class REKAM_MEDISController extends Controller
                 return redirect()->route('rekam_medis.index')->with('error', 'Data rekam medis tidak ditemukan.');
             }
             
-            // Update data
-            $updated = DB::table('REKAM_MEDIS')->where('ID_REKAM_MEDIS', $id)->update([
+            // Prepare update data - handle NULL ID_STAF
+            $updateData = [
                 'ID_PASIEN' => $request->id_pasien,
                 'ID_DOKTER' => $request->id_dokter,
-                'ID_STAF' => $request->id_staf,
                 'TANGGAL' => $request->tanggal,
                 'HASIL_PEMERIKSAAN' => trim($request->hasil_pemeriksaan),
                 'RIWAYAT_REKAM_MEDIS' => trim($request->riwayat_rekam_medis),
                 'DIAGNOSA' => trim($request->diagnosa),
                 'TINDAKAN' => trim($request->tindakan),
                 'OBAT' => trim($request->obat),
-            ]);
+            ];
+
+            // Handle ID_STAF - only include if not null
+            if ($request->filled('id_staf')) {
+                $updateData['ID_STAF'] = $request->id_staf;
+            }
+            
+            // Update data
+            $updated = DB::table('REKAM_MEDIS')->where('ID_REKAM_MEDIS', $id)->update($updateData);
 
             if ($updated) {
                 // Log the update
