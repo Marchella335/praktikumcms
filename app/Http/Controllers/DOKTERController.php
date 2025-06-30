@@ -75,7 +75,7 @@ class DOKTERController extends Controller
                 'jenis_kelamin' => $request->JENIS_KELAMIN,
                 'gaji' => $request->GAJI,
             ]);
-
+  Log::info('pasien');
             return redirect()->route('dokter.index')
                 ->with('success', 'Data dokter berhasil ditambahkan.');
         } catch (\Illuminate\Validation\ValidationException $e) {
