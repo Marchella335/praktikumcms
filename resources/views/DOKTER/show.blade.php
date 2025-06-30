@@ -91,7 +91,7 @@
                                 <label class="form-label text-muted small">JENIS KELAMIN</label>
                                 <div class="h6">
                                     <i class="fas {{ $dokter->jenis_kelamin == 'Laki-laki' ? 'fa-mars text-primary' : 'fa-venus text-danger' }} me-2"></i>
-                                    <span>{{ $dokter->jenis_kelamin}}</span>
+                                    <span>{{ $dokter->jenis_kelamin }}</span>
                                 </div>
                             </div>
                         </div>
@@ -164,14 +164,14 @@
                     
                     <div class="mb-3">
                         <label for="created_at" class="form-label">Tanggal Bergabung</label>
-                        <input type="datetime-local" class="form-control" name="created_at" readonly
-                        value="{{ old('created_at', isset($dokter->CREATED_AT) ? date('Y-m-d\TH:i', strtotime($dokter->CREATED_AT)) : '') }}">
+                        <input type="datetime-local" class="form-control" name="created_at"
+                        value="{{ old('created_at', isset($dokter->created_at) ? date('Y-m-d\TH:i', strtotime($dokter->created_at)) : '') }}">
                     </div>
 
                     <div class="mb-3">
                         <label for="updated_at" class="form-label">Terakhir Diupdate</label>
-                        <input type="datetime-local" class="form-control" name="updated_at" readonly
-                        value="{{ old('updated_at', isset($dokter->UPDATED_AT) ? date('Y-m-d\TH:i', strtotime($dokter->UPDATED_AT)) : '') }}">
+                        <input type="datetime-local" class="form-control" name="updated_at"
+                        value="{{ old('updated_at', isset($dokter->updated_at) ? date('Y-m-d\TH:i', strtotime($dokter->updated_at)) : '') }}">
                     </div>
                 </div>
             </div>

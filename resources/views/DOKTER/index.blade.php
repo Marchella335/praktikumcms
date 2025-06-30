@@ -64,23 +64,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Spesialisasi
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $dokter->pluck('SPESIALISASI')->unique()->count() }}</div>
-                        </div>
-                        <div class="stats-icon bg-success text-white">
-                            <i class="fas fa-medical-plus"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Dokter Table -->

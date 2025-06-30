@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('title', 'Dashboard - RS Cepat Sembuh')
-
 @section('content')
 <div class="container">
     <!-- Page Header -->

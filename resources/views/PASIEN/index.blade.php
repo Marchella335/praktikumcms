@@ -55,7 +55,7 @@
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 Total Pasien
                             </div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $pasien->count() }}</div>
+                                <div class="h5 mb-0 font-weight-bold">{{ $totalPasien }}</div>
                         </div>
 
                         <div class="stats-icon bg-primary text-white">
@@ -73,7 +73,7 @@
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                 Laki-laki
                             </div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $pasien->where('JENIS_KELAMIN', 'Laki-laki')->count() }}</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ $jumlahLaki }}</div>
                         </div>
                         <div class="stats-icon bg-success text-white">
                             <i class="fas fa-mars"></i>
@@ -90,27 +90,10 @@
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 Perempuan
                             </div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $pasien->where('JENIS_KELAMIN', 'Perempuan')->count() }}</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ $jumlahPerempuan }}</div>
                         </div>
                         <div class="stats-icon bg-info text-white">
                             <i class="fas fa-venus"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Rata-rata Usia
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $pasien->avg('USIA') ? round($pasien->avg('USIA'), 1) : 0 }} tahun</div>
-                        </div>
-                        <div class="stats-icon bg-warning text-white">
-                            <i class="fas fa-birthday-cake"></i>
                         </div>
                     </div>
                 </div>

@@ -33,29 +33,34 @@ class REKAM_MEDISController extends Controller
     }
 
     public function show($id)
-    {
-        $rekamMedis = DB::table('REKAM_MEDIS')
-            ->join('PASIEN', 'REKAM_MEDIS.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
-            ->join('DOKTER', 'REKAM_MEDIS.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
-            ->leftJoin('STAF', 'REKAM_MEDIS.ID_STAF', '=', 'STAF.ID_STAF')
-            ->select(
-                'REKAM_MEDIS.*',
-                'PASIEN.NAMA_PASIEN',
-                'PASIEN.NOMOR_TELEPON',
-                'PASIEN.ALAMAT',
-                'DOKTER.NAMA_DOKTER',
-                'DOKTER.SPESIALISASI',
-                'STAF.NAMA_STAF'
-            )
-            ->where('REKAM_MEDIS.ID_REKAM_MEDIS', $id)
-            ->first();
-        
-        if (!$rekamMedis) {
-            return redirect()->route('rekam_medis.index')->with('error', 'Data rekam medis tidak ditemukan.');
-        }
-
-        return view('REKAM_MEDIS.show', compact('rekamMedis'));
+{
+    if (!is_numeric($id)) {
+        return redirect()->route('rekam_medis.index')->with('error', 'ID rekam medis tidak valid.');
     }
+
+    $rekamMedis = DB::table('REKAM_MEDIS')
+        ->join('PASIEN', 'REKAM_MEDIS.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
+        ->join('DOKTER', 'REKAM_MEDIS.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
+        ->leftJoin('STAF', 'REKAM_MEDIS.ID_STAF', '=', 'STAF.ID_STAF')
+        ->select(
+            'REKAM_MEDIS.*',
+            'PASIEN.NAMA_PASIEN',
+            'PASIEN.NOMOR_TELEPON',
+            'PASIEN.ALAMAT',
+            'DOKTER.NAMA_DOKTER',
+            'DOKTER.SPESIALISASI',
+            'STAF.NAMA_STAF'
+        )
+        ->where('REKAM_MEDIS.ID_REKAM_MEDIS', $id)
+        ->first();
+    
+    if (!$rekamMedis) {
+        return redirect()->route('rekam_medis.index')->with('error', 'Data rekam medis tidak ditemukan.');
+    }
+
+    return view('REKAM_MEDIS.show', compact('rekamMedis'));
+}
+
 
     public function create()
     {
@@ -362,73 +367,83 @@ class REKAM_MEDISController extends Controller
     }
 
     // Method untuk pencarian rekam medis
-    public function search(Request $request)
-    {
-        $request->validate([
-            'keyword' => 'nullable|string|max:255',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'dokter_id' => 'nullable|integer|exists:DOKTER,ID_DOKTER',
-            'pasien_id' => 'nullable|integer|exists:PASIEN,ID_PASIEN',
-        ]);
+public function search(Request $request)
+{
+    $request->validate([
+        'keyword' => 'nullable|string|max:255',
+        'start_date' => 'nullable|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'dokter_id' => 'nullable|integer|exists:DOKTER,ID_DOKTER',
+        'pasien_id' => 'nullable|integer|exists:PASIEN,ID_PASIEN',
+    ]);
 
-        try {
-            $query = DB::table('REKAM_MEDIS')
-                ->join('PASIEN', 'REKAM_MEDIS.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
-                ->join('DOKTER', 'REKAM_MEDIS.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
-                ->leftJoin('STAF', 'REKAM_MEDIS.ID_STAF', '=', 'STAF.ID_STAF')
-                ->select(
-                    'REKAM_MEDIS.*',
-                    'PASIEN.NAMA_PASIEN',
-                    'DOKTER.NAMA_DOKTER',
-                    'STAF.NAMA_STAF'
-                );
+    try {
+        // Selalu ambil data untuk dropdown
+        $dokters = DB::table('DOKTER')->select('ID_DOKTER', 'NAMA_DOKTER')->orderBy('NAMA_DOKTER')->get();
+        $pasiens = DB::table('PASIEN')->select('ID_PASIEN', 'NAMA_PASIEN')->orderBy('NAMA_PASIEN')->get();
 
-            // Filter berdasarkan keyword
-            if ($request->filled('keyword')) {
-                $keyword = '%' . $request->keyword . '%';
-                $query->where(function ($q) use ($keyword) {
-                    $q->where('PASIEN.NAMA_PASIEN', 'like', $keyword)
-                      ->orWhere('DOKTER.NAMA_DOKTER', 'like', $keyword)
-                      ->orWhere('REKAM_MEDIS.DIAGNOSA', 'like', $keyword)
-                      ->orWhere('REKAM_MEDIS.HASIL_PEMERIKSAAN', 'like', $keyword);
-                });
-            }
-
-            // Filter berdasarkan tanggal
-            if ($request->filled('start_date')) {
-                $query->whereDate('REKAM_MEDIS.TANGGAL', '>=', $request->start_date);
-            }
-
-            if ($request->filled('end_date')) {
-                $query->whereDate('REKAM_MEDIS.TANGGAL', '<=', $request->end_date);
-            }
-
-            // Filter berdasarkan dokter
-            if ($request->filled('dokter_id')) {
-                $query->where('REKAM_MEDIS.ID_DOKTER', $request->dokter_id);
-            }
-
-            // Filter berdasarkan pasien
-            if ($request->filled('pasien_id')) {
-                $query->where('REKAM_MEDIS.ID_PASIEN', $request->pasien_id);
-            }
-
-            $rekamMedis = $query->orderBy('REKAM_MEDIS.TANGGAL', 'desc')
-                               ->orderBy('REKAM_MEDIS.ID_REKAM_MEDIS', 'desc')
-                               ->get();
-
-            // Data untuk dropdown filter
-            $dokters = DB::table('DOKTER')->select('ID_DOKTER', 'NAMA_DOKTER')->orderBy('NAMA_DOKTER')->get();
-            $pasiens = DB::table('PASIEN')->select('ID_PASIEN', 'NAMA_PASIEN')->orderBy('NAMA_PASIEN')->get();
-
-            return view('REKAM_MEDIS.search', compact('rekamMedis', 'dokters', 'pasiens'));
-        } catch (\Exception $e) {
-            Log::error('Error searching rekam medis: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat mencari data rekam medis.');
+        // Jika tidak ada parameter pencarian, tampilkan halaman kosong
+        if (!$request->hasAny(['keyword', 'start_date', 'end_date', 'dokter_id', 'pasien_id'])) {
+            return view('REKAM_MEDIS.search', compact('dokters', 'pasiens'));
         }
-    }
 
+        $query = DB::table('REKAM_MEDIS')
+            ->join('PASIEN', 'REKAM_MEDIS.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
+            ->join('DOKTER', 'REKAM_MEDIS.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
+            ->leftJoin('STAF', 'REKAM_MEDIS.ID_STAF', '=', 'STAF.ID_STAF')
+            ->select(
+                'REKAM_MEDIS.*',
+                'PASIEN.NAMA_PASIEN',
+                'DOKTER.NAMA_DOKTER',
+                'STAF.NAMA_STAF'
+            );
+
+        // Filter berdasarkan keyword
+        if ($request->filled('keyword')) {
+            $keyword = '%' . $request->keyword . '%';
+            $query->where(function ($q) use ($keyword) {
+                $q->where('PASIEN.NAMA_PASIEN', 'like', $keyword)
+                  ->orWhere('DOKTER.NAMA_DOKTER', 'like', $keyword)
+                  ->orWhere('REKAM_MEDIS.DIAGNOSA', 'like', $keyword)
+                  ->orWhere('REKAM_MEDIS.HASIL_PEMERIKSAAN', 'like', $keyword);
+            });
+        }
+
+        // Filter berdasarkan tanggal
+        if ($request->filled('start_date')) {
+            $query->whereDate('REKAM_MEDIS.TANGGAL', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('REKAM_MEDIS.TANGGAL', '<=', $request->end_date);
+        }
+
+        // Filter berdasarkan dokter
+        if ($request->filled('dokter_id')) {
+            $query->where('REKAM_MEDIS.ID_DOKTER', $request->dokter_id);
+        }
+
+        // Filter berdasarkan pasien
+        if ($request->filled('pasien_id')) {
+            $query->where('REKAM_MEDIS.ID_PASIEN', $request->pasien_id);
+        }
+
+        $rekamMedis = $query->orderBy('REKAM_MEDIS.TANGGAL', 'desc')
+                           ->orderBy('REKAM_MEDIS.ID_REKAM_MEDIS', 'desc')
+                           ->get();
+
+        return view('REKAM_MEDIS.search', compact('rekamMedis', 'dokters', 'pasiens'));
+    } catch (\Exception $e) {
+        Log::error('Error searching rekam medis: ' . $e->getMessage());
+        
+        // Tetap ambil data untuk dropdown meskipun error
+        $dokters = DB::table('DOKTER')->select('ID_DOKTER', 'NAMA_DOKTER')->orderBy('NAMA_DOKTER')->get();
+        $pasiens = DB::table('PASIEN')->select('ID_PASIEN', 'NAMA_PASIEN')->orderBy('NAMA_PASIEN')->get();
+        
+        return view('REKAM_MEDIS.search', compact('dokters', 'pasiens'))
+               ->with('error', 'Terjadi kesalahan saat mencari data rekam medis.');
+    }
+}
     // Method untuk export data (dapat dikembangkan untuk PDF/Excel)
     public function export(Request $request)
     {

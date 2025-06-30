@@ -9,11 +9,8 @@ class DOKTER extends Model
 {
     protected $table = 'DOKTER';
     protected $primaryKey = 'ID_DOKTER';
-    public $timestamps = true;
+    public $timestamps = false;
     
-    // Jika menggunakan custom timestamp columns
-    const CREATED_AT = 'CREATED_AT';
-    const UPDATED_AT = 'UPDATED_AT';
 
     protected $fillable = [
         'NAMA_DOKTER',
@@ -38,6 +35,6 @@ class DOKTER extends Model
 
     public function scopeByGender($query, $jenisKelamin)
     {
-        return $query->where('JENIS_KELAMIN', $jenisKelamin);
+    return $this->hasMany(JANJI_TEMU::class, 'ID_DOKTER', 'ID_DOKTER');
     }
 }

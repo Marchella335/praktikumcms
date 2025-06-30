@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\JANJI_TEMU;
 use App\Models\PASIEN;
 use App\Models\DOKTER;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class JANJI_TEMUController extends Controller
@@ -28,32 +28,39 @@ class JANJI_TEMUController extends Controller
         return view('JANJI_TEMU.index', compact('janjiTemu'));
     }
 
+    // Method show menggunakan findOrFail
     public function show($id)
     {
-        $janjiTemu = DB::table('JANJI_TEMU')
-            ->join('PASIEN', 'JANJI_TEMU.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
-            ->join('DOKTER', 'JANJI_TEMU.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
-            ->select(
-                'JANJI_TEMU.*',
-                'PASIEN.NAMA_PASIEN',
-                'PASIEN.NOMOR_TELEPON',
-                'DOKTER.NAMA_DOKTER',
-                'DOKTER.SPESIALISASI'
-            )
-            ->where('JANJI_TEMU.ID_JANJI', $id)
-            ->first();
-        
-        if (!$janjiTemu) {
-            return redirect()->route('janji_temu.index')->with('error', 'Data tidak ditemukan.');
-        }
+        try {
+            // Menggunakan Model JANJI_TEMU dengan findOrFail
+            $janjiTemu = JANJI_TEMU::findOrFail($id);
+            
+            // Memuat detail dengan join untuk tampilan
+            $janjiTemuDetail = DB::table('JANJI_TEMU')
+                ->join('PASIEN', 'JANJI_TEMU.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
+                ->join('DOKTER', 'JANJI_TEMU.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
+                ->select(
+                    'JANJI_TEMU.*',
+                    'PASIEN.NAMA_PASIEN',
+                    'PASIEN.NOMOR_TELEPON',
+                    'DOKTER.NAMA_DOKTER',
+                    'DOKTER.SPESIALISASI'
+                )
+                ->where('JANJI_TEMU.ID_JANJI', $id)
+                ->first();
 
-        return view('JANJI_TEMU.show', compact('janjiTemu'));
+            return view('JANJI_TEMU.show', ['janjiTemu' => $janjiTemuDetail]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Jika data tidak ditemukan, Laravel otomatis throw 404
+            // Tapi kita bisa custom pesan errornya
+            return redirect()->route('janji_temu.index')->with('error', 'Data janji temu dengan ID ' . $id . ' tidak ditemukan.');
+        }
     }
 
     public function create()
     {
-        $pasien = DB::table('PASIEN')->select('ID_PASIEN', 'NAMA_PASIEN')->get();
-        $dokter = DB::table('DOKTER')->select('ID_DOKTER', 'NAMA_DOKTER', 'SPESIALISASI')->get();
+        $pasien = DB::table('PASIEN')->select('ID_PASIEN', 'NAMA_PASIEN')->orderBy('NAMA_PASIEN')->get();
+        $dokter = DB::table('DOKTER')->select('ID_DOKTER', 'NAMA_DOKTER', 'SPESIALISASI')->orderBy('NAMA_DOKTER')->get();
         
         return view('JANJI_TEMU.create', compact('pasien', 'dokter'));
     }
@@ -91,25 +98,25 @@ class JANJI_TEMUController extends Controller
                 'keluhan' => $request->KELUHAN,
             ]);
 
-            return redirect()->route('janji_temu.index')->with('success', 'Janji temu berhasil dibuat.');
+            return redirect()->route('janji_temu.index')->with('success', 'Data janji temu berhasil ditambahkan.');
         } catch (\Exception $e) {
             Log::error('Error creating janji temu: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat membuat janji temu.');
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan data janji temu.');
         }
     }
 
+    // Method edit menggunakan findOrFail 
     public function edit($id)
     {
-        $janjiTemu = DB::table('JANJI_TEMU')->where('ID_JANJI', $id)->first();
-        
-        if (!$janjiTemu) {
-            return redirect()->route('janji_temu.index')->with('error', 'Data tidak ditemukan.');
+        try {
+            $janjiTemu = JANJI_TEMU::findOrFail($id);
+            $pasien = DB::table('PASIEN')->select('ID_PASIEN', 'NAMA_PASIEN')->orderBy('NAMA_PASIEN')->get();
+            $dokter = DB::table('DOKTER')->select('ID_DOKTER', 'NAMA_DOKTER', 'SPESIALISASI')->orderBy('NAMA_DOKTER')->get();
+            
+            return view('JANJI_TEMU.edit', compact('janjiTemu', 'pasien', 'dokter'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('janji_temu.index')->with('error', 'Data janji temu tidak ditemukan untuk diedit.');
         }
-
-        $pasien = DB::table('PASIEN')->select('ID_PASIEN', 'NAMA_PASIEN')->orderBy('NAMA_PASIEN')->get();
-        $dokter = DB::table('DOKTER')->select('ID_DOKTER', 'NAMA_DOKTER', 'SPESIALISASI')->orderBy('NAMA_DOKTER')->get();
-
-        return view('JANJI_TEMU.edit', compact('janjiTemu', 'pasien', 'dokter'));
     }
 
     public function update(Request $request, $id)
@@ -120,20 +127,12 @@ class JANJI_TEMUController extends Controller
             'tanggal_janji' => 'required|date|after_or_equal:today',
             'jam_janji' => 'required|date_format:H:i',
             'keluhan' => 'required|string|max:1000',
-        ], [
-            'id_pasien.required' => 'Pasien harus dipilih.',
-            'id_pasien.exists' => 'Pasien yang dipilih tidak valid.',
-            'id_dokter.required' => 'Dokter harus dipilih.',
-            'id_dokter.exists' => 'Dokter yang dipilih tidak valid.',
-            'tanggal_janji.required' => 'Tanggal janji harus diisi.',
-            'tanggal_janji.after_or_equal' => 'Tanggal janji tidak boleh sebelum hari ini.',
-            'jam_janji.required' => 'Jam janji harus diisi.',
-            'jam_janji.date_format' => 'Format jam janji tidak valid (HH:MM).',
-            'keluhan.required' => 'Keluhan harus diisi.',
-            'keluhan.max' => 'Keluhan maksimal 1000 karakter.',
         ]);
 
         try {
+            // Cek dulu apakah data exists menggunakan findOrFail
+            $janjiTemu = JANJI_TEMU::findOrFail($id);
+
             // Cek apakah dokter sudah ada janji pada tanggal dan jam yang sama (kecuali janji yang sedang diedit)
             $existingAppointment = DB::table('JANJI_TEMU')
                 ->where('ID_DOKTER', $request->id_dokter)
@@ -143,62 +142,103 @@ class JANJI_TEMUController extends Controller
                 ->first();
 
             if ($existingAppointment) {
-                return back()->withInput()->with('error', 'Dokter sudah memiliki janji pada tanggal dan jam tersebut. Silakan pilih waktu lain.');
+                return back()->with('error', 'Dokter sudah memiliki janji pada tanggal dan jam tersebut. Silakan pilih waktu lain.');
             }
 
-            // Get old data for logging
-            $oldData = DB::table('JANJI_TEMU')->where('ID_JANJI', $id)->first();
-            
-            // Update data
-            $updated = DB::table('JANJI_TEMU')->where('ID_JANJI', $id)->update([
+            DB::table('JANJI_TEMU')->where('ID_JANJI', $id)->update([
                 'ID_PASIEN' => $request->id_pasien,
                 'ID_DOKTER' => $request->id_dokter,
                 'TANGGAL_JANJI' => $request->tanggal_janji,
-                'JAM_JANJI' => $request->jam_janji . ':00', // Add seconds
-                'KELUHAN' => trim($request->keluhan),
+                'JAM_JANJI' => $request->jam_janji,
+                'KELUHAN' => $request->keluhan,
             ]);
 
-            if ($updated) {
-                // Log the update
-                Log::info('Janji temu updated successfully', [
-                    'id' => $id,
-                    'old_data' => $oldData,
-                    'new_data' => [
-                        'ID_PASIEN' => $request->id_pasien,
-                        'ID_DOKTER' => $request->id_dokter,
-                        'TANGGAL_JANJI' => $request->tanggal_janji,
-                        'JAM_JANJI' => $request->jam_janji,
-                        'KELUHAN' => $request->keluhan,
-                    ]
-                ]);
-
-                return redirect()->route('janji_temu.index')->with('success', 'Janji temu berhasil diperbarui.');
-            } else {
-                return back()->withInput()->with('error', 'Tidak ada perubahan data yang disimpan.');
-            }
+            return redirect()->route('janji_temu.index')->with('success', 'Data berhasil diperbarui.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('janji_temu.index')->with('error', 'Data janji temu tidak ditemukan untuk diupdate.');
         } catch (\Exception $e) {
-            Log::error('Error updating janji temu: ' . $e->getMessage(), [
-                'id' => $id,
-                'request_data' => $request->all(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return back()->withInput()->with('error', 'Terjadi kesalahan saat memperbarui janji temu. Silakan coba lagi.');
+            Log::error('Error updating janji temu: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat memperbarui data janji temu.');
         }
     }
+
     public function destroy($id)
     {
         try {
+            // Menggunakan findOrFail untuk memastikan data ada sebelum dihapus
+            $janjiTemu = JANJI_TEMU::findOrFail($id);
+            
             DB::table('JANJI_TEMU')->where('ID_JANJI', $id)->delete();
-            return redirect()->route('janji_temu.index')->with('success', 'Janji temu berhasil dihapus.');
+            return redirect()->route('janji_temu.index')->with('success', 'Data berhasil dihapus.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('janji_temu.index')->with('error', 'Data janji temu tidak ditemukan untuk dihapus.');
         } catch (\Exception $e) {
             Log::error('Error deleting janji temu: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat menghapus janji temu.');
+            return back()->with('error', 'Terjadi kesalahan saat menghapus data janji temu.');
         }
     }
 
-    // Method tambahan untuk menampilkan janji temu berdasarkan pasien
-    public function byPasien($idPasien)
+    // Method tambahan untuk demonstrasi pencarian berdasarkan pasien
+    public function findByPasien($idPasien)
     {
+        try {
+            // Menggunakan firstOrFail untuk mencari berdasarkan pasien
+            $pasien = PASIEN::findOrFail($idPasien);
+            
+            $janjiTemu = DB::table('JANJI_TEMU')
+                ->join('PASIEN', 'JANJI_TEMU.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
+                ->join('DOKTER', 'JANJI_TEMU.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
+                ->select(
+                    'JANJI_TEMU.*',
+                    'PASIEN.NAMA_PASIEN',
+                    'DOKTER.NAMA_DOKTER'
+                )
+                ->where('JANJI_TEMU.ID_PASIEN', $idPasien)
+                ->orderBy('JANJI_TEMU.TANGGAL_JANJI', 'desc')
+                ->get();
+
+            return view('JANJI_TEMU.by_pasien', compact('janjiTemu', 'pasien'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('janji_temu.index')->with('error', 'Pasien dengan ID "' . $idPasien . '" tidak ditemukan.');
+        }
+    }
+
+    // Method tambahan untuk demonstrasi try-catch manual
+    public function findByDokterAlternative($idDokter)
+    {
+        try {
+            $dokter = DB::table('DOKTER')->where('ID_DOKTER', $idDokter)->first();
+            
+            if (!$dokter) {
+                throw new \Exception('Dokter dengan ID tersebut tidak ditemukan');
+            }
+
+            $janjiTemu = DB::table('JANJI_TEMU')
+                ->join('PASIEN', 'JANJI_TEMU.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
+                ->join('DOKTER', 'JANJI_TEMU.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
+                ->select(
+                    'JANJI_TEMU.*',
+                    'PASIEN.NAMA_PASIEN',
+                    'DOKTER.NAMA_DOKTER'
+                )
+                ->where('JANJI_TEMU.ID_DOKTER', $idDokter)
+                ->orderBy('JANJI_TEMU.TANGGAL_JANJI', 'desc')
+                ->get();
+
+            return view('JANJI_TEMU.by_dokter', compact('janjiTemu', 'dokter'));
+        } catch (\Exception $e) {
+            Log::error('Error finding janji temu by dokter: ' . $e->getMessage());
+            return redirect()->route('janji_temu.index')->with('error', 'Dokter dengan ID "' . $idDokter . '" tidak ditemukan.');
+        }
+    }
+    // Add these methods to your JANJI_TEMUController class
+
+public function byPasien($idPasien)
+{
+    try {
+        // Menggunakan findOrFail untuk memastikan pasien ada
+        $pasien = PASIEN::findOrFail($idPasien);
+        
         $janjiTemu = DB::table('JANJI_TEMU')
             ->join('PASIEN', 'JANJI_TEMU.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
             ->join('DOKTER', 'JANJI_TEMU.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
@@ -211,14 +251,18 @@ class JANJI_TEMUController extends Controller
             ->orderBy('JANJI_TEMU.TANGGAL_JANJI', 'desc')
             ->get();
 
-        $pasien = DB::table('PASIEN')->where('ID_PASIEN', $idPasien)->first();
-
         return view('JANJI_TEMU.by_pasien', compact('janjiTemu', 'pasien'));
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return redirect()->route('janji_temu.index')->with('error', 'Pasien dengan ID "' . $idPasien . '" tidak ditemukan.');
     }
+}
 
-    // Method tambahan untuk menampilkan janji temu berdasarkan dokter
-    public function byDokter($idDokter)
-    {
+public function byDokter($idDokter)
+{
+    try {
+        // Menggunakan findOrFail untuk memastikan dokter ada
+        $dokter = DOKTER::findOrFail($idDokter);
+        
         $janjiTemu = DB::table('JANJI_TEMU')
             ->join('PASIEN', 'JANJI_TEMU.ID_PASIEN', '=', 'PASIEN.ID_PASIEN')
             ->join('DOKTER', 'JANJI_TEMU.ID_DOKTER', '=', 'DOKTER.ID_DOKTER')
@@ -231,8 +275,12 @@ class JANJI_TEMUController extends Controller
             ->orderBy('JANJI_TEMU.TANGGAL_JANJI', 'desc')
             ->get();
 
-        $dokter = DB::table('DOKTER')->where('ID_DOKTER', $idDokter)->first();
-
         return view('JANJI_TEMU.by_dokter', compact('janjiTemu', 'dokter'));
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return redirect()->route('janji_temu.index')->with('error', 'Dokter dengan ID "' . $idDokter . '" tidak ditemukan.');
+    } catch (\Exception $e) {
+        Log::error('Error finding janji temu by dokter: ' . $e->getMessage());
+        return redirect()->route('janji_temu.index')->with('error', 'Terjadi kesalahan saat mencari data janji temu.');
     }
+}
 }

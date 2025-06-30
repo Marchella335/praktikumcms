@@ -136,8 +136,7 @@ class DOKTERController extends Controller
                 'NOMOR_SIP' => $request->nomor_sip,
                 'JADWAL_PRAKTEK' => $request->jadwal_praktek,
                 'JENIS_KELAMIN' => $request->jenis_kelamin,
-                'GAJI' => $request->gaji,
-                'UPDATED_AT' => now(),
+                'GAJI' => $request->gaji
             ]);
 
             return redirect()->route('dokter.index')

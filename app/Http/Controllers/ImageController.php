@@ -7,7 +7,7 @@ use App\Models\Image;
 
 class ImageController extends Controller
 {
-     public function create()
+    public function create()
     {
         return view('upload');
     }
@@ -26,18 +26,14 @@ class ImageController extends Controller
             'image_path' => $imagePath,
         ]);
 
-        return view('upload', ['image' => $image])->with('success', 'Gambar berhasil diupload!');
+        return view('upload', ['image' => $image])->with('success', 'Gambar berhasil diupload');
     }
+
     public function destroy($id)
-{
-    $image = Image::findOrFail($id);
+    {
+        $image = Image::findOrFail($id);
+        $image->delete();
 
-    // Hapus file dari storage
-    Storage::disk('public')->delete($image->image_path);
-
-    // Hapus data dari database
-    $image->delete();
-
-    return redirect('/upload')->with('success', 'Gambar berhasil dihapus.');
-}
+        return redirect()->back()->with('success', 'Gambar berhasil dihapus');
+    }
 }

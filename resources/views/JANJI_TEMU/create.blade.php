@@ -150,18 +150,6 @@
                             </div>
                         </div>
 
-                        <!-- Informasi Tambahan -->
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Informasi Penting:</strong>
-                            <ul class="mb-0 mt-2">
-                                <li>Pastikan pasien dan dokter yang dipilih sudah sesuai</li>
-                                <li>Periksa ketersediaan jadwal dokter sebelum membuat janji</li>
-                                <li>Janji temu hanya bisa dibuat untuk tanggal hari ini atau masa depan</li>
-                                <li>Jam praktik dokter: 08:00 - 17:00</li>
-                            </ul>
-                        </div>
-
                         <hr class="my-4">
 
                         <div class="d-flex justify-content-end gap-2">
@@ -169,7 +157,7 @@
                                 <i class="fas fa-times me-2"></i>Batal
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Simpan Janji Temu
+                                <i class="fas fa-save me-2"></i>Simpan Data
                             </button>
                         </div>
                     </form>
@@ -195,63 +183,6 @@
         }
     });
 
-    // Validate time input based on selected date
-    document.getElementById('TANGGAL_JANJI').addEventListener('change', function(e) {
-        const selectedDate = new Date(e.target.value);
-        const today = new Date();
-        const timeInput = document.getElementById('JAM_JANJI');
-        
-        // If selected date is today, set minimum time to current time
-        if (selectedDate.toDateString() === today.toDateString()) {
-            const currentHour = today.getHours();
-            const currentMinute = today.getMinutes();
-            const minTime = String(currentHour).padStart(2, '0') + ':' + String(currentMinute).padStart(2, '0');
-            timeInput.min = minTime;
-        } else {
-            timeInput.min = '08:00';
-        }
-    });
-
-    // Auto-format keluhan text (capitalize first letter)
-    document.getElementById('KELUHAN').addEventListener('blur', function(e) {
-        let value = e.target.value.trim();
-        if (value.length > 0) {
-            e.target.value = value.charAt(0).toUpperCase() + value.slice(1);
-        }
-    });
-
-    // Form validation before submit
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const pasien = document.getElementById('ID_PASIEN').value;
-        const dokter = document.getElementById('ID_DOKTER').value;
-        const tanggal = document.getElementById('TANGGAL_JANJI').value;
-        const jam = document.getElementById('JAM_JANJI').value;
-        const keluhan = document.getElementById('KELUHAN').value.trim();
-
-        if (!pasien || !dokter || !tanggal || !jam || !keluhan) {
-            e.preventDefault();
-            alert('Mohon lengkapi semua field yang wajib diisi!');
-            return false;
-        }
-
-        // Validate if appointment is in the future
-        const appointmentDateTime = new Date(tanggal + ' ' + jam);
-        const now = new Date();
-        
-        if (appointmentDateTime <= now) {
-            e.preventDefault();
-            alert('Waktu janji temu harus di masa depan!');
-            return false;
-        }
-
-        // Confirm before submit
-        const confirmation = confirm('Apakah Anda yakin ingin membuat janji temu ini?');
-        if (!confirmation) {
-            e.preventDefault();
-            return false;
-        }
-    });
-
     // Initialize character counter on page load
     document.addEventListener('DOMContentLoaded', function() {
         const keluhanTextarea = document.getElementById('KELUHAN');
@@ -259,6 +190,15 @@
             const count = keluhanTextarea.value.length;
             document.getElementById('keluhanCount').textContent = count;
         }
+    });
+
+    // Format phone number input (for consistency)
+    document.getElementById('NOMOR_TELEPON')?.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 15) {
+            value = value.substring(0, 15);
+        }
+        e.target.value = value;
     });
 </script>
 @endpush

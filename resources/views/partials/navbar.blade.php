@@ -93,7 +93,7 @@
                 </li>
             </ul>
             
-            <ul class="navbar-nav">
+                
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user-circle me-1"></i>Admin

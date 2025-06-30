@@ -149,7 +149,6 @@
 </head>
 <body>
     @include('partials.navbar')
-
     <main class="main-content">
         @yield('content')
     </main>
