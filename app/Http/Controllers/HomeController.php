@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -57,15 +56,6 @@ class HomeController extends Controller
             ];
         });
 
-        // Spesialisasi dokter yang tersedia
-        $dokterSpesialisasi = DOKTER::select('SPESIALISASI')
-            ->distinct()
-            ->whereNotNull('SPESIALISASI')
-            ->where('SPESIALISASI', '!=', '')
-            ->get()
-            ->pluck('SPESIALISASI')
-            ->filter(); // Remove empty values
-
         return view('home', compact(
             'totalDokter',
             'totalPasien',
@@ -73,7 +63,6 @@ class HomeController extends Controller
             'totalJanjiTemu',
             'totalStaf',
             'recentAppointments',
-            'dokterSpesialisasi'
         ));
     }
 }

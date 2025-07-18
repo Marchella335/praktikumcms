@@ -16,6 +16,7 @@ Route::get('/home', function () {
     return redirect()->route(Auth::check() ? 'dashboard' : 'login');
 })->name('home');
 
+
 Route::get('/cek-db', function () {
     try {
         DB::connection('oracle')->getPdo();
@@ -24,6 +25,7 @@ Route::get('/cek-db', function () {
         return "❌ Gagal koneksi ke Oracle. Error: " . $e->getMessage();
     }
 });
+
 
 // Staf Routes
 Route::prefix('staf')->name('staf.')->group(function () {

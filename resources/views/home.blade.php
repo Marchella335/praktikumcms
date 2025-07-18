@@ -160,34 +160,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Spesialisasi Dokter
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if(isset($dokterSpesialisasi) && $dokterSpesialisasi->count() > 0)
-                        <div class="mb-3">
-                            <canvas id="specializationChart" width="400" height="400"></canvas>
-                        </div>
-                        <div class="mt-3">
-                            @foreach($dokterSpesialisasi as $spesialisasi)
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="badge bg-primary">{{ $spesialisasi }}</span>
-                                    <small class="text-muted">Tersedia</small>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-4">
-                            <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Belum ada data spesialisasi</p>
-                        </div>
-                    @endif
-                </div>
             </div>
 
             <!-- System Info Card -->
